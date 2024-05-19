@@ -1,0 +1,52 @@
+{% block content %}
+<html>
+    <head>
+
+    </head>
+    <body>
+        {% for consultation in consultations %}
+
+            <h4>consultation :  </h4>
+                {% for x in consultation.consultation %}
+        
+
+                    <p>{{ x.id }}</p>
+                    <button onclick="reserve('{{ x.id }}', '{{ consultation.date|date:'Y-m-d' }}')">doo</button>
+
+
+                {% endfor %}
+                <ul>
+                    <li>date :  {{ consultation.date }}</li>
+                </ul>
+                
+            </div>
+
+        </div>
+        <br>
+        
+    </body>
+    {% endfor %}
+
+
+    <script>
+        async function reserve(consultation, date){
+            const r = await fetch('/reservation/',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "X-CSRFToken": '{{ csrf_token }}',
+                },
+                body: JSON.stringify({
+                    consultation: consultation,
+                    date: date,
+                })
+                })
+        }
+        
+    </script>
+    
+
+
+
+</html>
+{% endblock %}
