@@ -51,5 +51,5 @@ class Reservation(models.Model):
     
 class UnavailableDay(models.Model):
     date = models.DateField()
-    consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE)        
-    all_day = models.BooleanField(default=False)
+    time = models.TimeField(null=True, blank=True)
+    capacity = models.SmallIntegerField(null=True, blank=True)

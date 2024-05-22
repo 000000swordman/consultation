@@ -42,26 +42,33 @@ def reservation_api(request):
         consultation = Consultation.objects.get(id=data.get('consultation'))
         date = data.get('date')
         member = request.user
-        print(Reservation.objects.filter(consultation=consultation))
+
         if not Reservation.objects.filter(member=member, date=date, consultation=consultation).exists():
-            if len(Reservation.objects.filter(consultation=consultation)) < consultation.capacity_of_members:
-                if not UnavailableDay.objects.get(date=date).all_day == True:
-                    if not UnavailableDay.objects.filter(consultation=consultation).exists():
+            if not UnavailableDay.objects.filter(date=date, time=None).exists():
+                if not UnavailableDay.objects.filter(date=date, time=consultation.start_time, capacity=None).exists():
+                    if UnavailableDay.objects.filter(date=date, time=consultation.start_time, capacity=not None).exists():
+                        capacity = consultation.capacity_of_members - UnavailableDay.objects.get(date=date, time=consultation.start_time).capacity
+                    else:
+                        capacity = consultation.capacity_of_members
+                    if len(Reservation.objects.filter(consultation=consultation)) < capacity:
+
                         reservation = Reservation.objects.create(
                             member=member,
                             date=date,
                             consultation=consultation
                         )
+                        print("done")
+                        return HttpResponse("done")
+                    
                     else:
-                        print("consultation is unavailable")
-                        return HttpResponse("consultation is unavailable")
-                else: 
-                    print("day in unavailable")
-                    return HttpResponse("day in unavailable")
-                print("consultation reserved")
-                return HttpResponse("consultation reserved")
-            else:
-                print("consultation is full")
-                return HttpResponse("consultation is full")
-        print("obj already exist")
-        return HttpResponse("obj already exist")
+                        print("consultation is full")
+                        return HttpResponse("consultation is full")
+                else:
+                    print("consultation is unavailable")
+                    return HttpResponse("consultation is unavailable")
+            else: 
+                print("day is unavailable")
+                return HttpResponse("day is unavailable")
+        else:
+            print("obj already exist")
+            return HttpResponse("obj already exist")
