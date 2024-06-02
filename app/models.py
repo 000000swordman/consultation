@@ -38,18 +38,21 @@ class Consultation(models.Model):
 
 
     def __str__(self):
-        return self.day +' at '+ str(self.start_time) + ' for ' + str(self.type) + ' Consultation.'
+        return self.day +' at '+ str(self.start_time)
 
 
 class Reservation(models.Model):
     date = models.DateField()
-    consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE)
+    time = models.TimeField(null=True, blank=True)
     member = models.ForeignKey(User, related_name='member', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return str(self.date) +' '+ str(self.consultation) +' '+ str(self.member)
+        return str(self.date) +' '+ str(self.time) +' '+ str(self.member)
     
 class UnavailableDay(models.Model):
     date = models.DateField()
     time = models.TimeField(null=True, blank=True)
     capacity = models.SmallIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.date) +' '+ str(self.time)

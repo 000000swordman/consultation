@@ -12,7 +12,6 @@ def consultation(request):
     if request.GET.get('date'):
         get_date = request.GET.get('date')
         date = datetime.datetime.strptime(get_date, '%y/%m/%d')
-        print(date)
         start_time = datetime.datetime(date.year, date.month, date.day)
         month = start_time.month
         year = start_time.year
@@ -24,6 +23,9 @@ def consultation(request):
         year = start_time.year
         last_day_of_month = calendar.monthrange(year, month)
         end_time = datetime.datetime(year, month, last_day_of_month[1])
+
+    if start_time.day == end_time.day:
+        return HttpResponse(f"pls specify the time frame. we can not make a list of consultation at: {start_time} to {end_time}")
 
     consultation_list = consultation_creator(start_time, end_time)
 
@@ -43,19 +45,21 @@ def reservation_api(request):
         date = data.get('date')
         member = request.user
 
-        if not Reservation.objects.filter(member=member, date=date, consultation=consultation).exists():
+        if not Reservation.objects.filter(member=member, date=date, time=consultation.start_time).exists():
             if not UnavailableDay.objects.filter(date=date, time=None).exists():
                 if not UnavailableDay.objects.filter(date=date, time=consultation.start_time, capacity=None).exists():
-                    if UnavailableDay.objects.filter(date=date, time=consultation.start_time, capacity=not None).exists():
+                    if UnavailableDay.objects.filter(date=date, time=consultation.start_time, capacity__isnull=False).exists():
+                        print(consultation.capacity_of_members)
                         capacity = consultation.capacity_of_members - UnavailableDay.objects.get(date=date, time=consultation.start_time).capacity
+                        print(capacity)
                     else:
                         capacity = consultation.capacity_of_members
-                    if len(Reservation.objects.filter(consultation=consultation)) < capacity:
+                    if len(Reservation.objects.filter(time=consultation.start_time)) < capacity:
 
                         reservation = Reservation.objects.create(
                             member=member,
                             date=date,
-                            consultation=consultation
+                            time=consultation.start_time
                         )
                         print("done")
                         return HttpResponse("done")

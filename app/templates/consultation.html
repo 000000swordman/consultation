@@ -10,7 +10,8 @@
                 {% for x in consultation.consultation %}
         
 
-                    <p>{{ x.id }}</p>
+                    <p>{{ x }}</p>
+                    <p>{{ x.capacity_of_members }}</p>
                     <button onclick="reserve('{{ x.id }}', '{{ consultation.date|date:'Y-m-d' }}')">doo</button>
 
 
