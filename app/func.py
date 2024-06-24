@@ -1,7 +1,7 @@
 import datetime
 import copy
 from .models import Consultation, UnavailableDay, Reservation, Meeting
-from django.db.models import F, Q
+from django.db.models import F
 
 
 def consultation_creator(start: datetime, end: datetime, type):
@@ -13,7 +13,7 @@ def consultation_creator(start: datetime, end: datetime, type):
     reservation_list = Reservation.objects.filter(type=type, date__range=[start, end]).order_by('date')
     unavailable_list = UnavailableDay.objects.filter(type=type, date__range=[start, end]).order_by(
         'date', F('time').desc(nulls_last=True), F('capacity').desc(nulls_last=True),)
-    meetigs = Meeting.objects.filter(~Q(type='Consultation'), date__range=[start, end]).order_by('date')
+    meetigs = Meeting.objects.filter(date__range=[start, end]).order_by('date')
     meetig_dict = {}
     unavailable_capacity_dict = {}
     consultations = Consultation.objects.filter(type=type)
@@ -41,7 +41,6 @@ def consultation_creator(start: datetime, end: datetime, type):
         if c_type not in consultation_dict[weekday]:
             consultation_dict[weekday][c_type] = {}
         consultation_dict[weekday][c_type][consultation.start_time] = consultation
-    print(consultation_dict, 'rrrrrrrr')
 
 
     for unavailable in unavailable_list:
@@ -118,14 +117,20 @@ def consultation_creator(start: datetime, end: datetime, type):
                                             obj.capacity_of_members -= u_day[i][obj.start_time]
                                 if 'all' in u_day:
                                     obj.capacity_of_members -= u_day['all']
+                    rooms = obj.type.room.all()
+                    rooms_capacity = len(rooms)
+                    m_capacity = 0
                     if x in meetig_dict:
                         for m in meetig_dict[x]:
-                            if m in obj.type.room.all():
+                            if m in rooms:
                                 for p in meetig_dict[x][m]:
                                     start_meeting = meetig_dict[x][m][p][0]
                                     end_meeting = meetig_dict[x][m][p][1]
                                     if obj.start_time <= start_meeting <= obj.end_time or obj.start_time <= end_meeting <= obj.end_time or start_meeting < obj.start_time and end_meeting > obj.end_time:
-                                        obj.capacity_of_members -= 1
+                                        m_capacity += 1
+                    final_rooms_capacity = rooms_capacity - m_capacity
+                    if final_rooms_capacity < obj.capacity_of_members:
+                        obj.capacity_of_members = final_rooms_capacity
 
                     obj_list.append(obj)
 

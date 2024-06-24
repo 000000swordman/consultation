@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from asgiref.sync import sync_to_async
+from django.db.models import Q
 from .models import *
 from .func import consultation_creator
 import json
@@ -71,10 +72,11 @@ def reservation_api(request):
                         meeting_room = None
                         for r in contype.room.all():
                             if Meeting.objects.filter(
+                                    Q(start_time__gte=consultation.start_time) and Q(start_time__lte=consultation.end_time)
+                                    or Q(end_time__gte=consultation.start_time) and Q(end_time__lte=consultation.end_time)
+                                    or Q(start_time__lte=consultation.start_time) and Q(end_time__gte=consultation.end_time),
                                     type='Consultation',
                                     date=date,
-                                    start_time=consultation.start_time,
-                                    end_time=consultation.end_time,
                                     room=r,
                             ).exists():
                                 continue

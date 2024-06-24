@@ -46,7 +46,6 @@ class Reservation(models.Model):
     time = models.TimeField(null=True, blank=True)
     member = models.ForeignKey(User, related_name='member', on_delete=models.CASCADE, null=True)
     type = models.ForeignKey(Consultation_type, on_delete=models.CASCADE, null=True)
-    meeting = models.ForeignKey(Consultation, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return str(self.date) +' '+ str(self.time) +' '+ str(self.member)
